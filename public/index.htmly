@@ -1,0 +1,49 @@
+cat > ~/projects/binance-chart/public/index.html <<'EOF'
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>Binance котировки</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: Arial, sans-serif; background:#0b0f14; color:#e6edf3; margin:20px; }
+    h1 { color:#00c853; }
+    table { border-collapse: collapse; width: 400px; }
+    th, td { border:1px solid #444; padding:8px; text-align:center; }
+    th { background:#222; }
+  </style>
+</head>
+<body>
+  <h1>Котировки Binance</h1>
+  <table>
+    <thead>
+      <tr><th>Монета</th><th>Цена (USDT)</th></tr>
+    </thead>
+    <tbody id="prices"></tbody>
+  </table>
+
+  <script>
+    const symbols = ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT"];
+    const tbody = document.getElementById("prices");
+
+    symbols.forEach(s => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${s}</td><td id="${s}">...</td>`;
+      tbody.appendChild(tr);
+    });
+
+    const ws = new WebSocket("wss://stream.binance.com:9443/ws/!ticker@arr");
+    ws.onmessage = event => {
+      const data = JSON.parse(event.data);
+      data.forEach(ticker => {
+        if(symbols.includes(ticker.s)) {
+          const cell = document.getElementById(ticker.s);
+          if(cell) cell.textContent = parseFloat(ticker.c).toFixed(2);
+        }
+      });
+    };
+  </script>
+</body>
+</html>
+EOF
+
